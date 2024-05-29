@@ -4,11 +4,10 @@ using Repository.Extensions;
 using Repository.Interfaces;
 using Repository.Models;
 using Services.Interfaces;
-using Services.Validations;
 using Shared;
 using Shared.DTOs;
 using Shared.Enums;
-using static Services.Validations.UserValidationService;
+using static Shared.Validations.UserValidationHelper;
 
 namespace Services;
 

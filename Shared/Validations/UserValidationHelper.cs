@@ -1,9 +1,8 @@
-﻿using Shared;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
-namespace Services.Validations;
+namespace Shared.Validations;
 
-public static class UserValidationService
+public static class UserValidationHelper
 {
     private static readonly Regex UsernameSpecialCharRegex = new(@"^[a-zA-Z0-9]*$");
 
