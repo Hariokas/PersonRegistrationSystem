@@ -1,32 +1,71 @@
 ﻿using System.Security.Cryptography;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+using Repository.Extensions;
 using Repository.Interfaces;
 using Repository.Models;
 using Services.Interfaces;
+using Services.Validations;
 using Shared;
 using Shared.DTOs;
+using Shared.Enums;
+using static Services.Validations.UserValidationService;
 
 namespace Services;
 
 public class UserService(IUserRepository userRepository) : IUserService
 {
-    public Task AddUserAsync(User user)
+    public async Task<UserDto> AddUserAsync(UserAuthenticateDto user)
     {
-        throw new NotImplementedException();
+        ValidateUser(user.Username, user.Password);
+
+        var existingUser = await userRepository.GetUserByNameAsync(user.Username);
+        if (existingUser != null)
+            throw new UserAlreadyExistsException("User already exists");
+
+        var salt = GenerateSalt();
+        var hashedPassword = HashPassword(user.Password, salt);
+
+        var newUser = new User
+        {
+            Username = user.Username,
+            Password = hashedPassword,
+            Salt = salt,
+            Id = Guid.NewGuid(),
+            People = [],
+            Role = Role.User
+        };
+
+        await userRepository.AddUserAsync(newUser);
+        return newUser.ToUserDto();
     }
 
-    public Task DeleteUserAsync(User user)
+    public async Task<UserDto> AuthenticateUserAsync(UserAuthenticateDto user)
+    {
+        if (string.IsNullOrEmpty(user.Username) || string.IsNullOrEmpty(user.Password))
+            throw new InvalidCredentialsException("Invalid credentials");
+
+        var dbUser = await userRepository.GetUserByNameAsync(user.Username);
+        if (dbUser == null)
+            throw new UserNotFoundException("User not found");
+
+        var hashedPassword = HashPassword(user.Password, dbUser.Salt);
+        if (hashedPassword != dbUser.Password)
+            throw new InvalidCredentialsException("Invalid credentials");
+
+        return dbUser.ToUserDto();
+    }
+
+    public async Task<AdminUserDto> DeleteUserAsync(AdminUserDto user)
     {
         if (user == null || user.Id == Guid.Empty || string.IsNullOrEmpty(user.Username))
             throw new InvalidCredentialsException("Invalid credentials or user does not exists");
 
-        var dbUser = userRepository.GetUserByIdAsync(user.Id);
+        var dbUser = await userRepository.GetUserByIdAsync(user.Id);
         if (dbUser == null)
             throw new UserNotFoundException("User not found");
 
-        userRepository.DeleteUserAsync(user);
-
-        return Task.CompletedTask;
+        await userRepository.DeleteUserAsync(dbUser);
+        return dbUser.ToAdminUserDto();
     }
 
     public async Task<UserDto> GetUserByIdAsync(Guid id)
@@ -35,12 +74,16 @@ public class UserService(IUserRepository userRepository) : IUserService
         if (user == null)
             throw new UserNotFoundException("User not found");
 
-        return ToDto(user);
+        return user.ToUserDto();
     }
 
-    public Task<UserDto> GetUserByNameAsync(string name)
+    public async Task<UserDto> GetUserByNameAsync(string name)
     {
-        throw new NotImplementedException();
+        var user = await userRepository.GetUserByNameAsync(name);
+        if (user == null)
+            throw new UserNotFoundException("User not found");
+
+        return user.ToUserDto();
     }
 
     private static string GenerateSalt()
@@ -61,16 +104,8 @@ public class UserService(IUserRepository userRepository) : IUserService
             KeyDerivationPrf.HMACSHA256,
             10000,
             256 / 8
-            ));
+        ));
 
         return hashed;
-    }
-
-    private static UserDto ToDto(User user)
-    {
-        return new UserDto
-        {
-            Username = user.Username
-        };
     }
 }
