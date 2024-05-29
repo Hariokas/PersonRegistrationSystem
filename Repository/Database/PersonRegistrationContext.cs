@@ -7,7 +7,6 @@ public class PersonRegistrationContext : DbContext
 {
     public PersonRegistrationContext(DbContextOptions<PersonRegistrationContext> options) : base(options)
     {
-
     }
 
     public DbSet<Person> People { get; set; }
