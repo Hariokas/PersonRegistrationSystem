@@ -1,27 +1,31 @@
-﻿using Repository.Interfaces;
+﻿using Microsoft.EntityFrameworkCore;
+using Repository.Database;
+using Repository.Interfaces;
 using Repository.Models;
 
 namespace Repository;
 
-public class UserRepository : IUserRepository
+public class UserRepository(PersonRegistrationContext dbContext) : IUserRepository
 {
-    public Task AddUserAsync(User user)
+    public async Task AddUserAsync(User user)
     {
-        throw new NotImplementedException();
+        await dbContext.Users.AddAsync(user);
+        await dbContext.SaveChangesAsync();
     }
 
-    public Task DeleteUserAsync(User user)
+    public async Task DeleteUserAsync(User user)
     {
-        throw new NotImplementedException();
+        await Task.Run(() => dbContext.Users.Remove(user));
+        await dbContext.SaveChangesAsync();
     }
 
-    public Task<User> GetUserByIdAsync(Guid id)
+    public async Task<User?> GetUserByIdAsync(Guid id)
     {
-        throw new NotImplementedException();
+        return await dbContext.Users.FirstOrDefaultAsync(u => u.Id == id);
     }
 
-    public Task<User> GetUserByNameAsync(string name)
+    public async Task<User?> GetUserByNameAsync(string name)
     {
-        throw new NotImplementedException();
+        return await dbContext.Users.FirstOrDefaultAsync(u => u.Username == name);
     }
 }
