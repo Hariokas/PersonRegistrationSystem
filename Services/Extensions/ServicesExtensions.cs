@@ -10,6 +10,7 @@ public static class ServicesExtensions
         services.AddScoped<IPersonService, PersonService>();
         services.AddScoped<IResidenceService, ResidenceService>();
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<ITokenService, TokenService>();
 
         return services;
     }

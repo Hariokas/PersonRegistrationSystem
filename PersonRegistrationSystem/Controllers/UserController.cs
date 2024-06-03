@@ -1,16 +1,21 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
 using Shared;
 using Shared.DTOs;
+using Shared.Enums;
 
 namespace API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class UserController(IUserService userService) : ControllerBase
+[Authorize]
+public class UserController(IUserService userService, ITokenService tokenService) : ControllerBase
 {
-    [HttpPost("register")]
-    public async Task<IActionResult> RegisterUserAsync(UserAuthenticateDto user)
+    [AllowAnonymous]
+    [HttpPost("Register")]
+    public async Task<IActionResult> RegisterUserAsync([FromBody] UserAuthenticateDto user)
     {
         try
         {
@@ -35,13 +40,17 @@ public class UserController(IUserService userService) : ControllerBase
         }
     }
 
-    [HttpPost("login")]
-    public async Task<IActionResult> AuthenticateUserAsync(UserAuthenticateDto user)
+    [AllowAnonymous]
+    [HttpPost("Login")]
+    public async Task<IActionResult> AuthenticateUserAsync([FromBody] UserAuthenticateDto user)
     {
         try
         {
             var existingUser = await userService.AuthenticateUserAsync(user);
-            return Ok(existingUser);
+            var existingUserId = await userService.GetUserIdByNameAsync(existingUser.Username);
+
+            var token = tokenService.GenerateToken(existingUserId, existingUser.Username);
+            return Ok(new { Token = token });
         }
         catch (InvalidCredentialsException e)
         {
@@ -57,11 +66,26 @@ public class UserController(IUserService userService) : ControllerBase
         }
     }
 
-    [HttpDelete("delete")]
-    public async Task<IActionResult> DeleteUserAsync(AdminUserDto user)
+    [HttpDelete("Delete")]
+    public async Task<IActionResult> DeleteUserAsync([FromBody] AdminUserDto user)
     {
         try
         {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            var userId = Guid.Parse(userIdClaim!.Value);
+
+            var userRole = await userService.GetUserRoleByIdAsync(userId);
+            if (userRole != Role.Admin)
+            {
+                var userNameClaim = User.FindFirst(ClaimTypes.Name);
+                var userName = userNameClaim!.Value;
+
+                if (userName != user.Username)
+                    return BadRequest("You can only delete your own account");
+
+                user.Id = userId;
+            }
+
             var deletedUser = await userService.DeleteUserAsync(user);
             return Ok(deletedUser);
         }
@@ -79,7 +103,8 @@ public class UserController(IUserService userService) : ControllerBase
         }
     }
 
-    [HttpGet("{id}")]
+    [Authorize(Roles = nameof(Role.Admin))]
+    [HttpGet("By-ID/{id}")]
     public async Task<IActionResult> GetUserByIdAsync(Guid id)
     {
         try
@@ -97,7 +122,8 @@ public class UserController(IUserService userService) : ControllerBase
         }
     }
 
-    [HttpGet("{name}")]
+    [Authorize(Roles = nameof(Role.Admin))]
+    [HttpGet("By-Name/{name}")]
     public async Task<IActionResult> GetUserByNameAsync(string name)
     {
         try

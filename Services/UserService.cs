@@ -85,6 +85,24 @@ public class UserService(IUserRepository userRepository) : IUserService
         return user.ToUserDto();
     }
 
+    public async Task<Guid> GetUserIdByNameAsync(string name)
+    {
+        var user = await userRepository.GetUserByNameAsync(name);
+        if (user == null)
+            throw new UserNotFoundException("User not found");
+
+        return user.Id;
+    }
+
+    public async Task<Role> GetUserRoleByIdAsync(Guid id)
+    {
+        var user = await userRepository.GetUserByIdAsync(id);
+        if (user == null)
+            throw new UserNotFoundException("User not found");
+
+        return user.Role;
+    }
+
     private static string GenerateSalt()
     {
         var salt = new byte[128 / 8];

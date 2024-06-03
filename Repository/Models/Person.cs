@@ -11,9 +11,10 @@ public class Person
     public string DateOfBirth { get; set; } = string.Empty;
     public string PersonalCode { get; set; } = string.Empty;
     public string Phone { get; set; } = string.Empty;
-
     public string Email { get; set; } = string.Empty;
-
+    public Guid UserId { get; set; }
+    public User User { get; set; } = default!;
     // Profile Picture
-    public Residence PlaceOfResidence { get; set; } = default!;
+    public Guid ResidenceId { get; set; }
+    public Residence Residence { get; set; } = default!;
 }
