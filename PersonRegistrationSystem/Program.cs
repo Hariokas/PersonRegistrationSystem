@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using API.Extensions;
 using Repository.Extensions;
 using Serilog;
@@ -49,6 +48,7 @@ public class Program
         }
 
         app.UseHttpsRedirection();
+        app.UseStaticFiles();
 
         app.UseAuthorization();
 

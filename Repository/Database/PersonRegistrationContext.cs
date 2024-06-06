@@ -28,6 +28,5 @@ public class PersonRegistrationContext : DbContext
             .WithOne(r => r.Person)
             .HasForeignKey<Residence>(r => r.PersonId)
             .OnDelete(DeleteBehavior.Cascade);
-
     }
 }

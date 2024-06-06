@@ -1,5 +1,12 @@
-﻿namespace Repository.Interfaces;
+﻿using Repository.Models;
+
+namespace Repository.Interfaces;
 
 public interface IResidenceRepository
 {
+    Task AddResidenceAsync(Residence residence);
+    Task<Residence?> GetResidenceByIdAsync(Guid residenceId);
+    Task<IEnumerable<Residence>> GetResidenceByPersonIdAsync(Guid personId);
+    Task UpdateResidenceAsync(Residence residence);
+    Task DeleteResidenceAsync(Residence residence);
 }
