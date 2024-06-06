@@ -1,10 +1,12 @@
-﻿using Shared.Enums;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Shared.Enums;
 
 namespace Repository.Models;
 
 public class Person
 {
-    public Guid Id { get; set; }
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public Guid Id { get; private set; }
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public Gender Gender { get; set; } = Gender.Unknown;
@@ -14,7 +16,7 @@ public class Person
     public string Email { get; set; } = string.Empty;
     public Guid UserId { get; set; }
     public User User { get; set; } = default!;
-    // Profile Picture
+    public string ProfilePicturePath { get; set; } = string.Empty;
     public Guid ResidenceId { get; set; }
-    public Residence Residence { get; set; } = default!;
+    public Residence? Residence { get; set; }
 }

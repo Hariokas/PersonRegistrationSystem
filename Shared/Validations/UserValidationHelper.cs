@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 
 namespace Shared.Validations;
 
@@ -13,22 +14,22 @@ public static class UserValidationHelper
             IsUsernameValid(username);
             IsPasswordComplex(password);
         }
-        catch (UserValidationException e)
+        catch (ValidationException e)
         {
-            throw new UserValidationException(e.Message);
+            throw new ValidationException(e.Message);
         }
     }
 
     public static bool IsUsernameValid(string username)
     {
         if (username.Length < 6)
-            throw new UserValidationException("Username must be longer than 6 characters");
+            throw new ValidationException("Username must be longer than 6 characters");
 
         if (username.Length > 20)
-            throw new UserValidationException("Username must be shorter than 20 characters");
+            throw new ValidationException("Username must be shorter than 20 characters");
 
         if (ContainsSpecialCharacters(username))
-            throw new UserValidationException("Username must not contain special characters");
+            throw new ValidationException("Username must not contain special characters");
 
         return true;
     }
@@ -42,19 +43,19 @@ public static class UserValidationHelper
         var hasMinimum8Chars = new Regex(@".{8,}");
 
         if (!hasUpperCase.IsMatch(password))
-            throw new UserValidationException("Password must contain at least one uppercase letter");
+            throw new ValidationException("Password must contain at least one uppercase letter");
 
         if (!hasLowerCase.IsMatch(password))
-            throw new UserValidationException("Password must contain at least one lowercase letter");
+            throw new ValidationException("Password must contain at least one lowercase letter");
 
         if (!hasDigit.IsMatch(password))
-            throw new UserValidationException("Password must contain at least one digit");
+            throw new ValidationException("Password must contain at least one digit");
 
         if (!hasSpecialChar.IsMatch(password))
-            throw new UserValidationException("Password must contain at least one special character");
+            throw new ValidationException("Password must contain at least one special character");
 
         if (!hasMinimum8Chars.IsMatch(password))
-            throw new UserValidationException("Password must be at least 8 characters long");
+            throw new ValidationException("Password must be at least 8 characters long");
 
         return true;
     }

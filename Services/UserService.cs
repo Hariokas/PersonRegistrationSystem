@@ -5,7 +5,7 @@ using Repository.Interfaces;
 using Repository.Models;
 using Services.Interfaces;
 using Shared;
-using Shared.DTOs;
+using Shared.DTOs.User;
 using Shared.Enums;
 using static Shared.Validations.UserValidationHelper;
 
@@ -29,7 +29,6 @@ public class UserService(IUserRepository userRepository) : IUserService
             Username = user.Username,
             Password = hashedPassword,
             Salt = salt,
-            Id = Guid.NewGuid(),
             People = [],
             Role = Role.User
         };

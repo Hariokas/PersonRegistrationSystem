@@ -1,5 +1,5 @@
 ﻿using Repository.Models;
-using Shared.DTOs;
+using Shared.DTOs.User;
 
 namespace Repository.Extensions;
 

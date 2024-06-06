@@ -1,4 +1,4 @@
-﻿using Shared.DTOs;
+﻿using Shared.DTOs.User;
 using Shared.Enums;
 
 namespace Services.Interfaces;
