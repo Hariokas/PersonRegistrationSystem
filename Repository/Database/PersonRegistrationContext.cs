@@ -16,5 +16,17 @@ public class PersonRegistrationContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<User>()
+            .HasMany(u => u.People)
+            .WithOne(p => p.User)
+            .HasForeignKey(p => p.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Person>()
+            .HasOne(p => p.Residence)
+            .WithOne(r => r.Person)
+            .HasForeignKey<Residence>(r => r.PersonId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

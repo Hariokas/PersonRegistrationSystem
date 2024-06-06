@@ -1,117 +1,71 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using API.Extensions;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
-using Shared;
-using Shared.DTOs;
+using Shared.DTOs.User;
+using Shared.Enums;
 
 namespace API.Controllers;
 
-[Route("api/[controller]")]
+[Authorize]
 [ApiController]
-public class UserController(IUserService userService) : ControllerBase
+[Route("api/[controller]")]
+public class UserController(IUserService userService, ITokenService tokenService) : ControllerBase
 {
-    [HttpPost("register")]
-    public async Task<IActionResult> RegisterUserAsync(UserAuthenticateDto user)
+    [AllowAnonymous]
+    [HttpPost("Register")]
+    public async Task<IActionResult> RegisterUserAsync([FromBody] UserAuthenticateDto user)
     {
-        try
-        {
-            var newUser = await userService.AddUserAsync(user);
-            return Ok(newUser);
-        }
-        catch (UserValidationException e)
-        {
-            return BadRequest(e.Message);
-        }
-        catch (InvalidCredentialsException e)
-        {
-            return BadRequest(e.Message);
-        }
-        catch (UserAlreadyExistsException e)
-        {
-            return BadRequest(e.Message);
-        }
-        catch (Exception e)
-        {
-            return StatusCode(500, e.Message);
-        }
+        var newUser = await userService.AddUserAsync(user);
+
+        return Ok(newUser);
     }
 
-    [HttpPost("login")]
-    public async Task<IActionResult> AuthenticateUserAsync(UserAuthenticateDto user)
+    [AllowAnonymous]
+    [HttpPost("Login")]
+    public async Task<IActionResult> AuthenticateUserAsync([FromBody] UserAuthenticateDto user)
     {
-        try
-        {
-            var existingUser = await userService.AuthenticateUserAsync(user);
-            return Ok(existingUser);
-        }
-        catch (InvalidCredentialsException e)
-        {
-            return BadRequest(e.Message);
-        }
-        catch (UserNotFoundException e)
-        {
-            return BadRequest(e.Message);
-        }
-        catch (Exception e)
-        {
-            return StatusCode(500, e.Message);
-        }
+        var existingUser = await userService.AuthenticateUserAsync(user);
+        var existingUserId = await userService.GetUserIdByNameAsync(existingUser.Username);
+        var token = tokenService.GenerateToken(existingUserId, existingUser.Username);
+
+        return Ok(new { Token = token });
     }
 
-    [HttpDelete("delete")]
-    public async Task<IActionResult> DeleteUserAsync(AdminUserDto user)
+    [HttpDelete("Delete")]
+    public async Task<IActionResult> DeleteUserAsync([FromBody] AdminUserDto user)
     {
-        try
+        var userId = User.GetUserId();
+        var userRole = await userService.GetUserRoleByIdAsync(userId);
+
+        if (userRole != Role.Admin)
         {
-            var deletedUser = await userService.DeleteUserAsync(user);
-            return Ok(deletedUser);
+            var userName = User.GetUserName();
+            if (userName != user.Username) return BadRequest("You can only delete your own account");
+
+            user.Id = userId;
         }
-        catch (InvalidCredentialsException e)
-        {
-            return BadRequest(e.Message);
-        }
-        catch (UserNotFoundException e)
-        {
-            return BadRequest(e.Message);
-        }
-        catch (Exception e)
-        {
-            return StatusCode(500, e.Message);
-        }
+
+        var deletedUser = await userService.DeleteUserAsync(user);
+
+        return Ok(deletedUser);
     }
 
-    [HttpGet("{id}")]
+    [Authorize(Roles = nameof(Role.Admin))]
+    [HttpGet("ByUserID/{id:guid}")]
     public async Task<IActionResult> GetUserByIdAsync(Guid id)
     {
-        try
-        {
-            var user = await userService.GetUserByIdAsync(id);
-            return Ok(user);
-        }
-        catch (UserNotFoundException e)
-        {
-            return BadRequest(e.Message);
-        }
-        catch (Exception e)
-        {
-            return StatusCode(500, e.Message);
-        }
+        var user = await userService.GetUserByIdAsync(id);
+
+        return Ok(user);
     }
 
-    [HttpGet("{name}")]
+    [Authorize(Roles = nameof(Role.Admin))]
+    [HttpGet("ByUserName/{name}")]
     public async Task<IActionResult> GetUserByNameAsync(string name)
     {
-        try
-        {
-            var user = await userService.GetUserByNameAsync(name);
-            return Ok(user);
-        }
-        catch (UserNotFoundException e)
-        {
-            return BadRequest(e.Message);
-        }
-        catch (Exception e)
-        {
-            return StatusCode(500, e.Message);
-        }
+        var user = await userService.GetUserByNameAsync(name);
+
+        return Ok(user);
     }
 }

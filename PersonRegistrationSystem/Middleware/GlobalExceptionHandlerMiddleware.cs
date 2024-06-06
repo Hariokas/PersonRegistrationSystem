@@ -20,17 +20,32 @@ public class GlobalExceptionHandlerMiddleware(RequestDelegate next)
 
     private Task HandleExceptionTask(HttpContext context, Exception exception)
     {
-        context.Response.ContentType = "application/json";
         context.Response.StatusCode = exception switch
         {
             UserNotFoundException => (int)HttpStatusCode.NotFound,
             UserAlreadyExistsException => (int)HttpStatusCode.Conflict,
             InvalidCredentialsException => (int)HttpStatusCode.BadRequest,
+            UnauthorizedAccessException => (int)HttpStatusCode.Forbidden,
+            PersonNotFoundException => (int)HttpStatusCode.NotFound,
+            ResidenceNotFoundException => (int)HttpStatusCode.NotFound,
             _ => (int)HttpStatusCode.InternalServerError
         };
 
-        var result = JsonConvert.SerializeObject(new { error = exception.Message });
+        var correlationId = context.TraceIdentifier; // or use your own correlation ID generator
+        var result = JsonConvert.SerializeObject(new ErrorResponse
+        {
+            StatusCode = context.Response.StatusCode,
+            Message = exception.Message,
+            CorrelationId = correlationId
+        });
 
         return context.Response.WriteAsync(result);
+    }
+
+    public class ErrorResponse
+    {
+        public int StatusCode { get; set; }
+        public string Message { get; set; } = "Unknown error";
+        public string CorrelationId { get; set; } = "N/A";
     }
 }

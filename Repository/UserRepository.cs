@@ -15,7 +15,7 @@ public class UserRepository(PersonRegistrationContext dbContext) : IUserReposito
 
     public async Task DeleteUserAsync(User user)
     {
-        await Task.Run(() => dbContext.Users.Remove(user));
+        dbContext.Users.Remove(user);
         await dbContext.SaveChangesAsync();
     }
 

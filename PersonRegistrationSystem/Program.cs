@@ -1,3 +1,4 @@
+using API.Extensions;
 using Repository.Extensions;
 using Serilog;
 using Services.Extensions;
@@ -23,7 +24,11 @@ public class Program
         // Add services to the container.
         builder.Services.AddDatabase(builder.Configuration);
         builder.Services.RegisterRepositoryServiceCollection();
+
         builder.Services.RegisterServicesServiceCollection();
+
+        builder.Services.AddJwtAuthServiceCollection(builder.Configuration);
+        builder.Services.AddSwaggerServiceCollection();
 
         Log.Information("Adding services...");
         builder.Services.AddControllers();
@@ -43,6 +48,7 @@ public class Program
         }
 
         app.UseHttpsRedirection();
+        app.UseStaticFiles();
 
         app.UseAuthorization();
 
