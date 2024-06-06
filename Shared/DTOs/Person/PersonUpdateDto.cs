@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Shared.Enums;
+﻿using Shared.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace Shared.DTOs.Person;

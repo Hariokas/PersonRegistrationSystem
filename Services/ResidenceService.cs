@@ -1,5 +1,5 @@
-﻿using Repository.Interfaces;
-using Repository.Models;
+﻿using Repository.Extensions;
+using Repository.Interfaces;
 using Services.Interfaces;
 using Shared;
 using Shared.DTOs.Residence;
@@ -17,15 +17,7 @@ public class ResidenceService(IPersonRepository personRepository, IResidenceRepo
         if (person.User.Id != userId)
             throw new UnauthorizedAccessException("You are not authorized to add residenceCreateDto to this person");
 
-        var residence = new Residence
-        {
-            City = residenceCreateDto.City,
-            HouseNumber = residenceCreateDto.HouseNumber,
-            Street = residenceCreateDto.Street,
-            ApartmentNumber = residenceCreateDto.ApartmentNumber,
-            Person = person,
-            PersonId = person.Id
-        };
+        var residence = residenceCreateDto.ToResidence(person);
 
         await residenceRepository.AddResidenceAsync(residence);
     }
@@ -38,15 +30,9 @@ public class ResidenceService(IPersonRepository personRepository, IResidenceRepo
         if (residence.Person.User.Id != userId)
             throw new UnauthorizedAccessException("You are not authorized to get this residence");
 
-        return new ResidenceDto
-        {
-            Id = residence.Id,
-            PersonId = residence.PersonId,
-            City = residence.City,
-            HouseNumber = residence.HouseNumber,
-            Street = residence.Street,
-            ApartmentNumber = residence.ApartmentNumber
-        };
+        var residenceDto = residence.ToResidenceDto();
+
+        return residenceDto;
     }
 
     public async Task<IEnumerable<ResidenceDto>> GetResidenceByPersonIdAsync(Guid userId, Role userRole, Guid personId)
@@ -59,36 +45,20 @@ public class ResidenceService(IPersonRepository personRepository, IResidenceRepo
 
         var residences = await residenceRepository.GetResidenceByPersonIdAsync(personId);
 
-        return residences.Select(residence => new ResidenceDto
-        {
-            Id = residence.Id,
-            PersonId = residence.PersonId,
-            City = residence.City,
-            HouseNumber = residence.HouseNumber,
-            Street = residence.Street,
-            ApartmentNumber = residence.ApartmentNumber
-        });
+        var residenceDtos = residences.ToList().Select(residence => residence.ToResidenceDto());
+
+        return residenceDtos;
     }
 
-    public async Task UpdateResidenceAsync(Guid userId, Role userRole, ResidenceUpdateDto residence)
+    public async Task UpdateResidenceAsync(Guid userId, Role userRole, ResidenceUpdateDto residenceUpdateDto)
     {
-        var residenceToUpdate = await residenceRepository.GetResidenceByIdAsync(residence.Id) ??
+        var residenceToUpdate = await residenceRepository.GetResidenceByIdAsync(residenceUpdateDto.Id) ??
                                 throw new ResidenceNotFoundException("Residence not found");
 
         if (residenceToUpdate.Person.User.Id != userId)
             throw new UnauthorizedAccessException("You are not authorized to update this residence");
 
-        if (residence.City != null)
-            residenceToUpdate.City = residence.City;
-
-        if (residence.HouseNumber != null)
-            residenceToUpdate.HouseNumber = residence.HouseNumber;
-
-        if (residence.Street != null)
-            residenceToUpdate.Street = residence.Street;
-
-        if (residence.ApartmentNumber != null)
-            residenceToUpdate.ApartmentNumber = residence.ApartmentNumber;
+        residenceToUpdate.UpdateWithDto(residenceUpdateDto);
 
         await residenceRepository.UpdateResidenceAsync(residenceToUpdate);
     }
