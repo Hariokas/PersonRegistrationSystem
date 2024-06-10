@@ -11,7 +11,9 @@ public class DateOfBirthValidation : ValidationAttribute
         if (!DateTime.TryParse((string)value, out var date))
             return new ValidationResult("Invalid Date of Birth format.");
 
-        return date < DateTime.Today ? ValidationResult.Success : new ValidationResult("Date of Birth must be a past date.");
+        return date < DateTime.Today
+            ? ValidationResult.Success
+            : new ValidationResult("Date of Birth must be a past date.");
     }
 }
 
@@ -39,8 +41,10 @@ public class ProfilePictureValidation : ValidationAttribute
         if (!allowedExtensions.Contains(extension))
             return new ValidationResult("Invalid file type. Only .jpg, .jpeg, and .png files are allowed.");
 
-        return file.Length > 5 * 1024 * 1024 ? // 5MB limit
-            new ValidationResult("File size cannot exceed 5MB.") : ValidationResult.Success;
+        return file.Length > 5 * 1024 * 1024
+            ? // 5MB limit
+            new ValidationResult("File size cannot exceed 5MB.")
+            : ValidationResult.Success;
     }
 }
 
@@ -49,15 +53,9 @@ public class PersonalCodeValidation : ValidationAttribute
     protected override ValidationResult IsValid(object value, ValidationContext validationContext)
     {
         var personIdCode = value as string;
-        if (string.IsNullOrEmpty(personIdCode))
-        {
-            return ValidationResult.Success;
-        }
+        if (string.IsNullOrEmpty(personIdCode)) return ValidationResult.Success;
 
-        if (!IsValidPersonalCode(personIdCode))
-        {
-            return new ValidationResult("Invalid personal code.");
-        }
+        if (!IsValidPersonalCode(personIdCode)) return new ValidationResult("Invalid personal code.");
 
         return ValidationResult.Success;
     }
@@ -120,10 +118,7 @@ public class PersonalCodeValidation : ValidationAttribute
         if (checkDigit == 10)
         {
             checkDigit = CalculateCheckDigit(personIdCode, weights2);
-            if (checkDigit == 10)
-            {
-                checkDigit = 0;
-            }
+            if (checkDigit == 10) checkDigit = 0;
         }
 
         return checkDigit == int.Parse(personIdCode.Substring(10, 1));
@@ -132,10 +127,19 @@ public class PersonalCodeValidation : ValidationAttribute
     private int CalculateCheckDigit(string personIdCode, int[] weights)
     {
         var sum = 0;
-        for (var i = 0; i < 10; i++)
-        {
-            sum += (personIdCode[i] - '0') * weights[i];
-        }
+        for (var i = 0; i < 10; i++) sum += (personIdCode[i] - '0') * weights[i];
         return sum % 11;
+    }
+}
+
+public class NonEmptyStringAttribute : ValidationAttribute
+{
+    protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
+    {
+        var str = value as string;
+        if (string.IsNullOrWhiteSpace(str?.Trim()))
+            return new ValidationResult("The field cannot be empty or contain only whitespaces.");
+
+        return ValidationResult.Success;
     }
 }

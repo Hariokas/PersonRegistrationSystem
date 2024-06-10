@@ -1,11 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
-using Repository.Extensions;
+﻿using Repository.Extensions;
 using Repository.Interfaces;
 using Services.Interfaces;
 using Shared;
 using Shared.DTOs.Person;
 using Shared.Enums;
-using Shared.StaticHelpers;
 using static Shared.StaticHelpers.ImageHelper;
 using static Shared.Validations.PersonValidationHelper;
 
@@ -52,7 +50,7 @@ public class PersonService(IPersonRepository personRepository, IUserRepository u
         if (userId != person.UserId)
             throw new UnauthorizedAccessException("You are not authorized to view this person's picture");
 
-        var imageMemoryStream = await ImageHelper.LoadImageAsync(person.ProfilePicturePath);
+        var imageMemoryStream = await LoadImageAsync(person.ProfilePicturePath);
 
         return imageMemoryStream;
     }
@@ -117,5 +115,4 @@ public class PersonService(IPersonRepository personRepository, IUserRepository u
 
         await personRepository.UpdatePersonAsync(person);
     }
-
 }

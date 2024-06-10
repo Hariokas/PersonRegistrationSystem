@@ -19,10 +19,10 @@ public class ResidenceRepository(PersonRegistrationContext dbContext) : IResiden
             .FirstOrDefaultAsync(r => r.Id == residenceId);
     }
 
-    public async Task<IEnumerable<Residence>> GetResidenceByPersonIdAsync(Guid personId)
+    public async Task<Residence?> GetResidenceByPersonIdAsync(Guid personId)
     {
         return await dbContext.Residences.Include(r => r.Person)
-            .Where(r => r.PersonId == personId).ToListAsync();
+            .FirstOrDefaultAsync(r => r.PersonId == personId);
     }
 
     public async Task UpdateResidenceAsync(Residence residence)

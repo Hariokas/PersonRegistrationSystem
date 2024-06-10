@@ -39,10 +39,10 @@ public class PersonCreateDto
     [StringLength(100)]
     public string Email { get; set; } = "";
 
-    [Required]
-    [ProfilePictureValidation]
-    public IFormFile ProfilePicturePath { get; set; }
+    [Required] 
+    [ProfilePictureValidation] 
+    public IFormFile ProfilePicturePath { get; set; } = default!;
 
     [Required] 
-    public ResidencePersonCreateDto Residence { get; set; }
+    public ResidencePersonCreateDto Residence { get; set; } = new();
 }
