@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Shared.DTOs.Residence;
+﻿using Shared.DTOs.Residence;
 using Shared.Enums;
 
 namespace Shared.DTOs.Person;

@@ -2,38 +2,47 @@
 using Microsoft.AspNetCore.Http;
 using Shared.DTOs.Residence;
 using Shared.Enums;
+using Shared.Validations;
 
 namespace Shared.DTOs.Person;
 
 public class PersonCreateDto
 {
-    [Required] [StringLength(100)] 
-    public string FirstName { get; set; } = default!;
+    [Required] 
+    [StringLength(100, MinimumLength = 1)] 
+    public string FirstName { get; set; } = "";
 
-    [Required] [StringLength(100)] 
-    public string LastName { get; set; } = default!;
+    [Required] 
+    [StringLength(100, MinimumLength = 1)] 
+    public string LastName { get; set; } = "";
 
     [Required] 
     public Gender Gender { get; set; } = Gender.Unknown;
 
-    [Required] [StringLength(10)] 
-    public string DateOfBirth { get; set; } = default!;
+    [Required] 
+    [StringLength(10)]
+    [DataType(DataType.Date)]
+    [DateOfBirthValidation]
+    public string DateOfBirth { get; set; } = "";
 
     [Required]
-    [StringLength(11, MinimumLength = 11, ErrorMessage = "Personal code must be 11 digits long")]
-    public string PersonalCode { get; set; } = default!;
+    [PersonalCodeValidation]
+    public string PersonalCode { get; set; } = "";
 
-    [Required] [StringLength(20)] 
-    public string Phone { get; set; } = default!;
+    [Required]
+    [StringLength(20)]
+    [PhoneNumberValidation]
+    public string Phone { get; set; } = "";
 
     [Required]
     [EmailAddress]
     [StringLength(100)]
-    public string Email { get; set; } = default!;
+    public string Email { get; set; } = "";
+
+    [Required]
+    [ProfilePictureValidation]
+    public IFormFile ProfilePicturePath { get; set; }
 
     [Required] 
-    public IFormFile ProfilePicturePath { get; set; } = default!;
-
-    [Required] 
-    public ResidencePersonCreateDto Residence { get; set; } = default!;
+    public ResidencePersonCreateDto Residence { get; set; }
 }
