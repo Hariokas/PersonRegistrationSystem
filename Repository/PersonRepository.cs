@@ -34,6 +34,9 @@ public class PersonRepository(PersonRegistrationContext dbContext) : IPersonRepo
 
     public async Task DeletePersonAsync(Person person)
     {
+        if (File.Exists(person.ProfilePicturePath))
+            File.Delete(person.ProfilePicturePath);
+
         dbContext.People.Remove(person);
         await dbContext.SaveChangesAsync();
     }

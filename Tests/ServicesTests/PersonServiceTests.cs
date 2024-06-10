@@ -144,4 +144,58 @@ public class PersonServiceTests
         await Assert.ThrowsExceptionAsync<PersonNotFoundException>(() =>
             _personService.DeletePersonPictureAsync(userId, personId));
     }
+
+    [TestMethod]
+    public async Task GetPersonAsAdminByIdAsync_ShouldReturnAdminPersonDto_WhenPersonIsFound()
+    {
+        // Arrange
+        var person = new Person { FirstName = "John", LastName = "Doe" };
+        var personId = person.Id;
+        _personRepositoryMock.Setup(repo => repo.GetPersonByIdAsync(personId)).ReturnsAsync(person);
+
+        // Act
+        var result = await _personService.GetPersonAsAdminByIdAsync(personId);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(personId, result.Id);
+        Assert.AreEqual(person.FirstName, result.FirstName);
+        Assert.AreEqual(person.LastName, result.LastName);
+    }
+
+    [TestMethod]
+    public async Task DeletePersonAsAdminAsync_ShouldDeletePerson_WhenPersonExistsAndNotAdmin()
+    {
+        // Arrange
+        var personId = Guid.NewGuid();
+        var person = new Person { UserId = Guid.NewGuid() };
+        var user = new User { Role = Role.User };
+
+        _personRepositoryMock.Setup(repo => repo.GetPersonByIdAsync(personId)).ReturnsAsync(person);
+        _userRepositoryMock.Setup(repo => repo.GetUserByIdAsync(person.UserId)).ReturnsAsync(user);
+        _personRepositoryMock.Setup(repo => repo.DeletePersonAsync(person)).Returns(Task.CompletedTask);
+
+        // Act
+        await _personService.DeletePersonAsAdminAsync(personId);
+
+        // Assert
+        _personRepositoryMock.Verify(repo => repo.DeletePersonAsync(person), Times.Once);
+    }
+
+    [TestMethod]
+    public async Task DeletePersonAsAdminAsync_ShouldThrowUnauthorizedAccessException_WhenPersonIsAdmin()
+    {
+        // Arrange
+        var personId = Guid.NewGuid();
+        var user = new User { Role = Role.Admin };
+        var person = new Person { UserId = Guid.NewGuid() };
+
+
+        _personRepositoryMock.Setup(repo => repo.GetPersonByIdAsync(personId)).ReturnsAsync(person);
+        _userRepositoryMock.Setup(repo => repo.GetUserByIdAsync(person.UserId)).ReturnsAsync(user);
+
+        // Act & Assert
+        await Assert.ThrowsExceptionAsync<UnauthorizedAccessException>(() => _personService.DeletePersonAsAdminAsync(personId));
+    }
+
 }

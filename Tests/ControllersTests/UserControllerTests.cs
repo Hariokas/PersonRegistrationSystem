@@ -137,4 +137,61 @@ public class UserControllerTests
         Assert.IsNotNull(okResult);
         Assert.AreEqual(userDto, okResult.Value);
     }
+
+    [TestMethod]
+    public async Task GetUserAsAdminByIdAsync_ShouldReturnOk_WhenUserIsFound()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var adminUserDto = new AdminUserDto { Id = userId, Username = "adminuser" };
+        _userServiceMock.Setup(service => service.GetUserAsAdminByIdAsync(userId))
+            .ReturnsAsync(adminUserDto);
+
+        // Act
+        var result = await _userController.GetUserAsAdminByIdAsync(userId);
+
+        // Assert
+        Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+        var okResult = result as OkObjectResult;
+        Assert.IsNotNull(okResult);
+        Assert.AreEqual(adminUserDto, okResult.Value);
+    }
+
+    [TestMethod]
+    public async Task GetUserAsAdminByNameAsync_ShouldReturnOk_WhenUserIsFound()
+    {
+        // Arrange
+        var username = "testuser";
+        var adminUserDto = new AdminUserDto { Id = Guid.NewGuid(), Username = username };
+        _userServiceMock.Setup(service => service.GetUserAsAdminByNameAsync(username))
+            .ReturnsAsync(adminUserDto);
+
+        // Act
+        var result = await _userController.GetUserAsAdminByNameAsync(username);
+
+        // Assert
+        Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+        var okResult = result as OkObjectResult;
+        Assert.IsNotNull(okResult);
+        Assert.AreEqual(adminUserDto, okResult.Value);
+    }
+
+    [TestMethod]
+    public async Task DeleteUserAsAdminAsync_ShouldReturnOk_WhenUserIsDeleted()
+    {
+        // Arrange
+        var adminUserDto = new AdminUserDto { Id = Guid.NewGuid(), Username = "testuser" };
+        var deletedUserDto = new AdminUserDto();
+        _userServiceMock.Setup(service => service.DeleteUserAsAdminAsync(adminUserDto))
+            .ReturnsAsync(deletedUserDto);
+
+        // Act
+        var result = await _userController.DeleteUserAsAdminAsync(adminUserDto);
+
+        // Assert
+        Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+        var okResult = result as OkObjectResult;
+        Assert.IsNotNull(okResult);
+        Assert.AreEqual(deletedUserDto, okResult.Value);
+    }
 }

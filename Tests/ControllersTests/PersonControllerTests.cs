@@ -170,4 +170,38 @@ public class PersonControllerTests
         // Assert
         Assert.IsInstanceOfType(result, typeof(OkResult));
     }
+
+    [TestMethod]
+    public async Task GetPersonAsAdminByIdAsync_ShouldReturnOk_WhenPersonIsFound()
+    {
+        // Arrange
+        var personId = Guid.NewGuid();
+        var adminPersonDto = new AdminPersonDto { Id = personId, FirstName = "John", LastName = "Doe" };
+        _personServiceMock.Setup(service => service.GetPersonAsAdminByIdAsync(personId))
+            .ReturnsAsync(adminPersonDto);
+
+        // Act
+        var result = await _personController.GetPersonAsAdminByIdAsync(personId);
+
+        // Assert
+        Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+        var okResult = result as OkObjectResult;
+        Assert.IsNotNull(okResult);
+        Assert.AreEqual(adminPersonDto, okResult.Value);
+    }
+
+    [TestMethod]
+    public async Task DeletePersonAsAdminAsync_ShouldReturnOk_WhenPersonIsDeleted()
+    {
+        // Arrange
+        var personId = Guid.NewGuid();
+        _personServiceMock.Setup(service => service.DeletePersonAsAdminAsync(personId))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _personController.DeletePersonAsAdminAsync(personId);
+
+        // Assert
+        Assert.IsInstanceOfType(result, typeof(OkResult));
+    }
 }

@@ -18,6 +18,7 @@ public class UserService(IUserRepository userRepository) : IUserService
         ValidateUser(user.Username, user.Password);
 
         var existingUser = await userRepository.GetUserByNameAsync(user.Username);
+
         if (existingUser != null)
             throw new UserAlreadyExistsException("User already exists");
 
@@ -42,8 +43,7 @@ public class UserService(IUserRepository userRepository) : IUserService
         if (string.IsNullOrEmpty(user.Username) || string.IsNullOrEmpty(user.Password))
             throw new InvalidCredentialsException("Invalid credentials");
 
-        var dbUser = await userRepository.GetUserByNameAsync(user.Username);
-        if (dbUser == null)
+        var dbUser = await userRepository.GetUserByNameAsync(user.Username) ??
             throw new UserNotFoundException("User not found");
 
         var hashedPassword = HashPassword(user.Password, dbUser.Salt);
@@ -58,9 +58,20 @@ public class UserService(IUserRepository userRepository) : IUserService
         if (user == null || user.Id == Guid.Empty || string.IsNullOrEmpty(user.Username))
             throw new InvalidCredentialsException("Invalid credentials or user does not exists");
 
-        var dbUser = await userRepository.GetUserByIdAsync(user.Id);
-        if (dbUser == null)
+        var dbUser = await userRepository.GetUserByIdAsync(user.Id) ??
             throw new UserNotFoundException("User not found");
+
+        await userRepository.DeleteUserAsync(dbUser);
+        return dbUser.ToAdminUserDto();
+    }
+
+    public async Task<AdminUserDto> DeleteUserAsAdminAsync(AdminUserDto user)
+    {
+        var dbUser = await userRepository.GetUserByIdAsync(user.Id) ??
+                     throw new UserNotFoundException("User not found");
+
+        if (dbUser.Role == Role.Admin)
+            throw new UnauthorizedAccessException("Admin users cannot delete other admins");
 
         await userRepository.DeleteUserAsync(dbUser);
         return dbUser.ToAdminUserDto();
@@ -68,8 +79,7 @@ public class UserService(IUserRepository userRepository) : IUserService
 
     public async Task<UserDto> GetUserByIdAsync(Guid id)
     {
-        var user = await userRepository.GetUserByIdAsync(id);
-        if (user == null)
+        var user = await userRepository.GetUserByIdAsync(id) ??
             throw new UserNotFoundException("User not found");
 
         return user.ToUserDto();
@@ -77,26 +87,39 @@ public class UserService(IUserRepository userRepository) : IUserService
 
     public async Task<UserDto> GetUserByNameAsync(string name)
     {
-        var user = await userRepository.GetUserByNameAsync(name);
-        if (user == null)
-            throw new UserNotFoundException("User not found");
+        var user = await userRepository.GetUserByNameAsync(name) ?? 
+                   throw new UserNotFoundException("User not found");
 
         return user.ToUserDto();
     }
 
     public async Task<Guid> GetUserIdByNameAsync(string name)
     {
-        var user = await userRepository.GetUserByNameAsync(name);
-        if (user == null)
-            throw new UserNotFoundException("User not found");
+        var user = await userRepository.GetUserByNameAsync(name) ??
+                   throw new UserNotFoundException("User not found");
 
         return user.Id;
     }
 
+    public async Task<AdminUserDto> GetUserAsAdminByIdAsync(Guid id)
+    {
+        var user = await userRepository.GetUserByIdAsync(id) ??
+                   throw new UserNotFoundException("User not found");
+
+        return user.ToAdminUserDto();
+    }
+
+    public async Task<AdminUserDto> GetUserAsAdminByNameAsync(string name)
+    {
+        var user = await userRepository.GetUserByNameAsync(name) ??
+                   throw new UserNotFoundException("User not found");
+
+        return user.ToAdminUserDto();
+    }
+
     public async Task<Role> GetUserRoleByIdAsync(Guid id)
     {
-        var user = await userRepository.GetUserByIdAsync(id);
-        if (user == null)
+        var user = await userRepository.GetUserByIdAsync(id) ??
             throw new UserNotFoundException("User not found");
 
         return user.Role;

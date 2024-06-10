@@ -1,4 +1,5 @@
 ﻿using Moq;
+using Repository.Extensions;
 using Repository.Interfaces;
 using Repository.Models;
 using Services;
@@ -22,19 +23,6 @@ public class UserServiceTests
     }
 
     [TestMethod]
-    public async Task AddUserAsync_ShouldThrowUserAlreadyExistsException_WhenUserAlreadyExists()
-    {
-        // Arrange
-        var userAuthenticateDto = new UserAuthenticateDto { Username = "testuser", Password = "Test@123" };
-        var existingUser = new User { Username = "testuser" };
-
-        _userRepositoryMock.Setup(x => x.GetUserByNameAsync(userAuthenticateDto.Username)).ReturnsAsync(existingUser);
-
-        // Act & Assert
-        await Assert.ThrowsExceptionAsync<UserAlreadyExistsException>(() => _userService.AddUserAsync(userAuthenticateDto));
-    }
-
-    [TestMethod]
     public async Task AddUserAsync_ShouldAddUser_WhenValid()
     {
         // Arrange
@@ -55,6 +43,23 @@ public class UserServiceTests
         Assert.IsTrue(!string.IsNullOrEmpty(createdUser.Salt));
         Assert.AreEqual(Role.User, createdUser.Role);
         Assert.AreEqual(userAuthenticateDto.Username, result.Username);
+    }
+
+
+    [TestMethod]
+    public async Task AddUserAsync_ShouldThrowUserAlreadyExistsException_WhenUserAlreadyExists()
+    {
+        // Arrange
+        var userAuthenticateDto = new UserAuthenticateDto { Username = "testuser", Password = "Test@123" };
+        var existingUser = new User { Username = "testuser" };
+
+        _userRepositoryMock.Setup(x => x.GetUserByNameAsync(userAuthenticateDto.Username)).ReturnsAsync(existingUser);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsExceptionAsync<UserAlreadyExistsException>(() => _userService.AddUserAsync(userAuthenticateDto));
+
+        // Additional Assert
+        Assert.AreEqual("User already exists", exception.Message);
     }
 
     [TestMethod]
@@ -200,6 +205,57 @@ public class UserServiceTests
         // Assert
         Assert.IsNotNull(result);
         Assert.AreEqual(dbUser.Username, result.Username);
+    }
+
+    [TestMethod]
+    public async Task GetUserAsAdminByIdAsync_ShouldReturnAdminUserDto_WhenUserIsFound()
+    {
+        // Arrange
+        var user = new User { Username = "testuser" };
+        var userId = user.Id;
+        _userRepositoryMock.Setup(repo => repo.GetUserByIdAsync(userId)).ReturnsAsync(user);
+
+        // Act
+        var result = await _userService.GetUserAsAdminByIdAsync(userId);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(userId, result.Id);
+        Assert.AreEqual(user.Username, result.Username);
+    }
+
+    [TestMethod]
+    public async Task GetUserAsAdminByNameAsync_ShouldReturnAdminUserDto_WhenUserIsFound()
+    {
+        // Arrange
+        var username = "testuser";
+        var user = new User { Username = username };
+        _userRepositoryMock.Setup(repo => repo.GetUserByNameAsync(username)).ReturnsAsync(user);
+
+        // Act
+        var result = await _userService.GetUserAsAdminByNameAsync(username);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(user.Id, result.Id);
+        Assert.AreEqual(username, result.Username);
+    }
+
+    [TestMethod]
+    public async Task DeleteUserAsAdminAsync_ShouldReturnAdminUserDto_WhenUserIsDeleted()
+    {
+        // Arrange
+        var user = new User { Username = "testuser", Role = Role.User };
+        _userRepositoryMock.Setup(repo => repo.GetUserByIdAsync(user.Id)).ReturnsAsync(user);
+        _userRepositoryMock.Setup(repo => repo.DeleteUserAsync(user)).Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _userService.DeleteUserAsAdminAsync(user.ToAdminUserDto());
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(user.Id, result.Id);
+        Assert.AreEqual(user.Username, result.Username);
     }
 
 }
