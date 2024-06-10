@@ -13,7 +13,7 @@ namespace API.Controllers;
 public class PersonController(IPersonService personService, IUserService userService) : ControllerBase
 {
     [HttpPost]
-    public async Task<IActionResult> AddPersonAsync([FromBody] PersonCreateDto personDto)
+    public async Task<IActionResult> AddPersonAsync([FromForm] PersonCreateDto personDto)
     {
         var userId = User.GetUserId();
         await personService.AddPersonAsync(userId, personDto);
@@ -62,7 +62,7 @@ public class PersonController(IPersonService personService, IUserService userSer
     }
 
     [HttpPut("Picture")]
-    public async Task<IActionResult> UpdatePersonPictureAsync([FromBody] PersonPictureUpdateDto personPictureUpdateDto)
+    public async Task<IActionResult> UpdatePersonPictureAsync([FromForm] PersonPictureUpdateDto personPictureUpdateDto)
     {
         var userId = User.GetUserId();
         await personService.UpdatePersonPictureAsync(userId, personPictureUpdateDto);
