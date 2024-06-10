@@ -52,6 +52,14 @@ public class UserController(IUserService userService, ITokenService tokenService
     }
 
     [Authorize(Roles = nameof(Role.Admin))]
+    [HttpDelete("Admin/Delete")]
+    public async Task<IActionResult> DeleteUserAsAdminAsync([FromBody] AdminUserDto user)
+    {
+        var deletedUser = await userService.DeleteUserAsAdminAsync(user);
+        return Ok(deletedUser);
+    }
+
+    [Authorize(Roles = nameof(Role.Admin))]
     [HttpGet("ByUserID/{id:guid}")]
     public async Task<IActionResult> GetUserByIdAsync(Guid id)
     {
@@ -66,6 +74,22 @@ public class UserController(IUserService userService, ITokenService tokenService
     {
         var user = await userService.GetUserByNameAsync(name);
 
+        return Ok(user);
+    }
+
+    [Authorize(Roles = nameof(Role.Admin))]
+    [HttpGet("Admin/ByUserId/{id:guid}")]
+    public async Task<IActionResult> GetUserAsAdminByIdAsync(Guid id)
+    {
+        var user = await userService.GetUserAsAdminByIdAsync(id);
+        return Ok(user);
+    }
+
+    [Authorize(Roles = nameof(Role.Admin))]
+    [HttpGet("Admin/ByUserName/{name}")]
+    public async Task<IActionResult> GetUserAsAdminByNameAsync(string name)
+    {
+        var user = await userService.GetUserAsAdminByNameAsync(name);
         return Ok(user);
     }
 }

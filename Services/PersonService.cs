@@ -42,6 +42,14 @@ public class PersonService(IPersonRepository personRepository, IUserRepository u
             .Select(person => person.ToPersonDto());
     }
 
+    public async Task<AdminPersonDto> GetPersonAsAdminByIdAsync(Guid personId)
+    {
+        var person = await personRepository.GetPersonByIdAsync(personId) ??
+            throw new PersonNotFoundException("Person not found");
+
+        return person.ToAdminPersonDto();
+    }
+
     public async Task<MemoryStream> GetPictureByPersonId(Guid userId, Guid personId)
     {
         var person = await personRepository.GetPersonByIdAsync(personId) ??
@@ -94,8 +102,17 @@ public class PersonService(IPersonRepository personRepository, IUserRepository u
         if (currentUserId != person.UserId && currentUserRole != Role.Admin)
             throw new UnauthorizedAccessException("You are not authorized to delete this person");
 
-        if (File.Exists(person.ProfilePicturePath))
-            File.Delete(person.ProfilePicturePath);
+        await personRepository.DeletePersonAsync(person);
+    }
+
+    public async Task DeletePersonAsAdminAsync(Guid personId)
+    {
+        var person = await personRepository.GetPersonByIdAsync(personId) ??
+            throw new PersonNotFoundException("Person not found");
+
+        var user = await userRepository.GetUserByIdAsync(person.UserId);
+        if (user?.Role == Role.Admin)
+            throw new UnauthorizedAccessException("Admin users cannot delete other admin user person");
 
         await personRepository.DeletePersonAsync(person);
     }

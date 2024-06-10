@@ -52,6 +52,16 @@ public static class PersonExtensions
         };
     }
 
+    public static AdminPersonDto ToAdminPersonDto(this Person person)
+    {
+        return new AdminPersonDto
+        {
+            Id = person.Id,
+            FirstName = person.FirstName,
+            LastName = person.LastName,
+        };
+    }
+
     public static void UpdateWithDto(this Person person, PersonUpdateDto personDto)
     {
         if (!string.IsNullOrWhiteSpace(personDto.FirstName))

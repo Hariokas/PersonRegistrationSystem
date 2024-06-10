@@ -1,7 +1,8 @@
 ﻿namespace Shared.DTOs.Person;
 
-internal class AdminPersonDto
+public class AdminPersonDto
 {
+    public Guid Id { get; set; }
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
 }
