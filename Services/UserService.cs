@@ -102,7 +102,7 @@ public class UserService(IUserRepository userRepository) : IUserService
         return user.Role;
     }
 
-    private static string GenerateSalt()
+    public static string GenerateSalt()
     {
         var salt = new byte[128 / 8];
         using var rng = RandomNumberGenerator.Create();
@@ -111,7 +111,7 @@ public class UserService(IUserRepository userRepository) : IUserService
         return Convert.ToBase64String(salt);
     }
 
-    private static string HashPassword(string password, string salt)
+    public static string HashPassword(string password, string salt)
     {
         var saltBytes = Convert.FromBase64String(salt);
         var hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(

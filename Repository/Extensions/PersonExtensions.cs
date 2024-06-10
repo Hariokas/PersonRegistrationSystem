@@ -74,7 +74,5 @@ public static class PersonExtensions
 
         if (!string.IsNullOrWhiteSpace(personDto.Email))
             person.Email = personDto.Email;
-
     }
-
 }

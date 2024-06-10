@@ -22,7 +22,7 @@ public class ResidenceService(IPersonRepository personRepository, IResidenceRepo
         await residenceRepository.AddResidenceAsync(residence);
     }
 
-    public async Task<ResidenceDto?> GetResidenceByIdAsync(Guid userId, Role userRole, Guid residenceId)
+    public async Task<ResidenceDto> GetResidenceByIdAsync(Guid userId, Role userRole, Guid residenceId)
     {
         var residence = await residenceRepository.GetResidenceByIdAsync(residenceId) ??
                         throw new ResidenceNotFoundException("Residence not found");
@@ -35,7 +35,7 @@ public class ResidenceService(IPersonRepository personRepository, IResidenceRepo
         return residenceDto;
     }
 
-    public async Task<IEnumerable<ResidenceDto>> GetResidenceByPersonIdAsync(Guid userId, Role userRole, Guid personId)
+    public async Task<ResidenceDto> GetResidenceByPersonIdAsync(Guid userId, Role userRole, Guid personId)
     {
         var person = await personRepository.GetPersonByIdAsync(personId) ??
                      throw new PersonNotFoundException("Person not found");
@@ -43,11 +43,12 @@ public class ResidenceService(IPersonRepository personRepository, IResidenceRepo
         if (person.User.Id != userId)
             throw new UnauthorizedAccessException("You are not authorized to get residences of this person");
 
-        var residences = await residenceRepository.GetResidenceByPersonIdAsync(personId);
+        var residence = await residenceRepository.GetResidenceByPersonIdAsync(personId) ??
+                        throw new ResidenceNotFoundException("Residence not found");
 
-        var residenceDtos = residences.ToList().Select(residence => residence.ToResidenceDto());
+        var residenceDto = residence.ToResidenceDto();
 
-        return residenceDtos;
+        return residenceDto;
     }
 
     public async Task UpdateResidenceAsync(Guid userId, Role userRole, ResidenceUpdateDto residenceUpdateDto)
