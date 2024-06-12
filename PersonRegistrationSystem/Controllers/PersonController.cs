@@ -31,14 +31,6 @@ public class PersonController(IPersonService personService, IUserService userSer
         return Ok(person);
     }
 
-    [Authorize(Roles = nameof(Role.Admin))]
-    [HttpGet("Admin/{id:guid}")]
-    public async Task<IActionResult> GetPersonAsAdminByIdAsync(Guid id)
-    {
-        var person = await personService.GetPersonAsAdminByIdAsync(id);
-        return Ok(person);
-    }
-
     [HttpGet("ByUserId")]
     public async Task<IActionResult> GetPeopleByUserIdAsync([FromQuery] Guid? id)
     {
@@ -98,10 +90,10 @@ public class PersonController(IPersonService personService, IUserService userSer
     }
 
     [Authorize(Roles = nameof(Role.Admin))]
-    [HttpDelete("Admin/Delete/{id:guid}")]
-    public async Task<IActionResult> DeletePersonAsAdminAsync(Guid id)
+    [HttpGet("Admin/{id:guid}")]
+    public async Task<IActionResult> GetPersonAsAdminByIdAsync(Guid id)
     {
-        await personService.DeletePersonAsAdminAsync(id);
-        return Ok();
+        var person = await personService.GetPersonAsAdminByIdAsync(id);
+        return Ok(person);
     }
 }

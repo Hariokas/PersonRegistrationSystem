@@ -189,19 +189,4 @@ public class PersonControllerTests
         Assert.IsNotNull(okResult);
         Assert.AreEqual(adminPersonDto, okResult.Value);
     }
-
-    [TestMethod]
-    public async Task DeletePersonAsAdminAsync_ShouldReturnOk_WhenPersonIsDeleted()
-    {
-        // Arrange
-        var personId = Guid.NewGuid();
-        _personServiceMock.Setup(service => service.DeletePersonAsAdminAsync(personId))
-            .Returns(Task.CompletedTask);
-
-        // Act
-        var result = await _personController.DeletePersonAsAdminAsync(personId);
-
-        // Assert
-        Assert.IsInstanceOfType(result, typeof(OkResult));
-    }
 }

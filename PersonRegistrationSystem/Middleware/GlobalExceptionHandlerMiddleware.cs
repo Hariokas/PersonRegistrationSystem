@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using Newtonsoft.Json;
+using Serilog;
 using Shared;
 
 namespace API.Middleware;
@@ -38,6 +39,8 @@ public class GlobalExceptionHandlerMiddleware(RequestDelegate next)
             Message = exception.Message,
             CorrelationId = correlationId
         });
+
+        Log.Error(exception.Message);
 
         return context.Response.WriteAsync(result);
     }
